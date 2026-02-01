@@ -46,7 +46,7 @@ export default function Home() {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-primary/50 h-6 w-6" />
           <Input
             className="w-full h-14 pl-14 pr-4 text-lg border-none focus-visible:ring-0 bg-transparent placeholder:text-slate-300"
-            placeholder="Buscar por nome, categoria ou código..."
+            placeholder="Buscar por código, nome ou descrição..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -78,11 +78,57 @@ export default function Home() {
         </div>
       ) : (
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-          <Table>
+          {/* Mobile View: Cards */}
+          <div className="md:hidden divide-y divide-slate-100">
+            {items?.map((item) => (
+              <div key={item.id} className="p-4 space-y-4">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <span className="text-xs font-bold text-primary bg-green-50 px-2 py-1 rounded uppercase tracking-wider mb-1 inline-block">
+                      {item.code}
+                    </span>
+                    <h3 className="font-bold text-slate-900 text-lg">{item.name}</h3>
+                  </div>
+                  <div className="flex gap-2">
+                    <Link href={`/editar/${item.id}`}>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400">
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                    <DeleteConfirmDialog 
+                      itemName={item.name} 
+                      onConfirm={() => handleDelete(item.id)} 
+                      isDeleting={deleteItem.isPending} 
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-blue-50/50 p-3 rounded-xl">
+                    <span className="text-[10px] font-bold text-blue-600 uppercase tracking-tighter block mb-1">Externo</span>
+                    <div className="flex items-center gap-1 text-sm font-medium text-slate-700">
+                      <MapPin className="w-3 h-3 text-blue-500" />
+                      {item.locationExternal || "N/A"}
+                    </div>
+                  </div>
+                  <div className="bg-amber-50/50 p-3 rounded-xl">
+                    <span className="text-[10px] font-bold text-amber-600 uppercase tracking-tighter block mb-1">Satélite</span>
+                    <div className="flex items-center gap-1 text-sm font-medium text-slate-700">
+                      <MapPin className="w-3 h-3 text-amber-500" />
+                      {item.locationSatellite || "N/A"}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop View: Table */}
+          <Table className="hidden md:table">
             <TableHeader className="bg-slate-50">
               <TableRow className="hover:bg-transparent">
-                <TableHead className="w-[30%] py-4 pl-6 text-xs font-bold text-slate-500 uppercase tracking-wider">Item / Descrição</TableHead>
-                <TableHead className="w-[15%] py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Categoria</TableHead>
+                <TableHead className="w-[15%] py-4 pl-6 text-xs font-bold text-slate-500 uppercase tracking-wider">Código</TableHead>
+                <TableHead className="w-[30%] py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Item / Descrição</TableHead>
                 <TableHead className="w-[20%] py-4 text-xs font-bold text-blue-600 uppercase tracking-wider bg-blue-50/50">Local. Externo</TableHead>
                 <TableHead className="w-[20%] py-4 text-xs font-bold text-amber-600 uppercase tracking-wider bg-amber-50/50">Local. Satélite</TableHead>
                 <TableHead className="w-[15%] py-4 text-right pr-6 text-xs font-bold text-slate-500 uppercase tracking-wider">Ações</TableHead>
@@ -91,7 +137,13 @@ export default function Home() {
             <TableBody>
               {items?.map((item) => (
                 <TableRow key={item.id} className="group hover:bg-slate-50/80 transition-colors">
-                  <TableCell className="pl-6 py-4 align-top">
+                  <TableCell className="pl-6 py-4">
+                    <span className="font-bold text-primary bg-green-50 px-2 py-1 rounded text-sm uppercase tracking-wider">
+                      {item.code}
+                    </span>
+                  </TableCell>
+                  
+                  <TableCell className="py-4 align-top">
                     <div className="flex flex-col gap-1">
                       <span className="font-semibold text-foreground text-base">{item.name}</span>
                       {item.description && (
@@ -102,34 +154,18 @@ export default function Home() {
                       </span>
                     </div>
                   </TableCell>
-                  
-                  <TableCell className="align-top py-4">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
-                      {item.category || "Geral"}
-                    </span>
-                  </TableCell>
 
                   <TableCell className="align-top py-4 bg-blue-50/30">
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
-                        <MapPin className="w-4 h-4 text-blue-500" />
-                        {item.locationExternal || "N/A"}
-                      </div>
-                      <span className="text-xs text-slate-500 pl-6">
-                        Qtd: <span className={item.quantityExternal === 0 ? "text-red-500 font-bold" : "font-semibold"}>{item.quantityExternal}</span>
-                      </span>
+                    <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                      <MapPin className="w-4 h-4 text-blue-500" />
+                      {item.locationExternal || "N/A"}
                     </div>
                   </TableCell>
 
                   <TableCell className="align-top py-4 bg-amber-50/30">
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
-                        <MapPin className="w-4 h-4 text-amber-500" />
-                        {item.locationSatellite || "N/A"}
-                      </div>
-                      <span className="text-xs text-slate-500 pl-6">
-                        Qtd: <span className={item.quantitySatellite === 0 ? "text-red-500 font-bold" : "font-semibold"}>{item.quantitySatellite}</span>
-                      </span>
+                    <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                      <MapPin className="w-4 h-4 text-amber-500" />
+                      {item.locationSatellite || "N/A"}
                     </div>
                   </TableCell>
 

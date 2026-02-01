@@ -75,31 +75,25 @@ export async function registerRoutes(
   const existing = await storage.getItems();
   if (existing.length === 0) {
     await storage.createItem({
+      code: "SER10",
       name: "Seringa 10ml",
       description: "Seringa descartável sem agulha",
-      category: "Descartáveis",
       locationExternal: "Prateleira A1",
       locationSatellite: "Armário 2",
-      quantityExternal: 150,
-      quantitySatellite: 50,
     });
     await storage.createItem({
+      code: "PARA500",
       name: "Paracetamol 500mg",
       description: "Comprimidos",
-      category: "Medicamentos",
       locationExternal: "Gaveta B3",
       locationSatellite: "Gaveta C1",
-      quantityExternal: 500,
-      quantitySatellite: 200,
     });
     await storage.createItem({
+      code: "LUV-M",
       name: "Luva de Procedimento M",
       description: "Caixa com 100 unidades",
-      category: "EPI",
       locationExternal: "Estante D",
       locationSatellite: "Estante A",
-      quantityExternal: 30,
-      quantitySatellite: 10,
     });
   }
 

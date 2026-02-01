@@ -21,8 +21,8 @@ export class DatabaseStorage implements IStorage {
       .from(items)
       .where(
         or(
+          ilike(items.code, searchLower),
           ilike(items.name, searchLower),
-          ilike(items.category, searchLower),
           ilike(items.description, searchLower)
         )
       )
