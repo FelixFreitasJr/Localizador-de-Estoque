@@ -9,13 +9,14 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   app.get(api.items.list.path, async (req, res) => {
-    const search = req.query.search as string | undefined;
+    const search = typeof req.query.search === 'string' ? req.query.search : undefined;
     const items = await storage.getItems(search);
     res.json(items);
   });
 
   app.get(api.items.get.path, async (req, res) => {
-    const id = parseInt(req.params.id);
+    const idParam = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const id = parseInt(idParam);
     if (isNaN(id)) return res.status(400).json({ message: "Invalid ID" });
     
     const item = await storage.getItem(id);
@@ -43,7 +44,8 @@ export async function registerRoutes(
 
   app.put(api.items.update.path, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const idParam = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+      const id = parseInt(idParam);
       if (isNaN(id)) return res.status(400).json({ message: "Invalid ID" });
 
       const input = api.items.update.input.parse(req.body);
@@ -64,7 +66,8 @@ export async function registerRoutes(
   });
 
   app.delete(api.items.delete.path, async (req, res) => {
-    const id = parseInt(req.params.id);
+    const idParam = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const id = parseInt(idParam);
     if (isNaN(id)) return res.status(400).json({ message: "Invalid ID" });
 
     await storage.deleteItem(id);
@@ -87,7 +90,8 @@ export async function registerRoutes(
   });
 
   app.post(api.items.duplicate.path, async (req, res) => {
-    const id = parseInt(req.params.id);
+    const idParam = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+    const id = parseInt(idParam);
     if (isNaN(id)) return res.status(400).json({ message: "Invalid ID" });
 
     const item = await storage.getItem(id);
