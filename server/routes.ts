@@ -71,6 +71,36 @@ export async function registerRoutes(
     res.status(204).send();
   });
 
+  app.post(api.items.bulkCreate.path, async (req, res) => {
+    try {
+      const input = api.items.bulkCreate.input.parse(req.body);
+      const items = await storage.bulkCreateItems(input);
+      res.status(201).json(items);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        return res.status(400).json({
+          message: err.errors[0].message,
+        });
+      }
+      res.status(500).json({ message: "Erro interno ao processar carga" });
+    }
+  });
+
+  app.post(api.items.duplicate.path, async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Invalid ID" });
+
+    const item = await storage.getItem(id);
+    if (!item) return res.status(404).json({ message: "Item not found" });
+
+    const { id: _, lastUpdated: __, code, ...rest } = item;
+    const newItem = await storage.createItem({
+      ...rest,
+      code: `${code}-COPIA-${Date.now()}`,
+    });
+    res.status(201).json(newItem);
+  });
+
   // Seed data if empty
   const existing = await storage.getItems();
   if (existing.length === 0) {

@@ -43,6 +43,15 @@ export const api = {
         400: errorSchemas.validation,
       },
     },
+    bulkCreate: {
+      method: 'POST' as const,
+      path: '/api/items/bulk',
+      input: z.array(insertItemSchema),
+      responses: {
+        201: z.array(z.custom<typeof items.$inferSelect>()),
+        400: errorSchemas.validation,
+      },
+    },
     update: {
       method: 'PUT' as const,
       path: '/api/items/:id',
@@ -58,6 +67,14 @@ export const api = {
       path: '/api/items/:id',
       responses: {
         204: z.void(),
+        404: errorSchemas.notFound,
+      },
+    },
+    duplicate: {
+      method: 'POST' as const,
+      path: '/api/items/:id/duplicate',
+      responses: {
+        201: z.custom<typeof items.$inferSelect>(),
         404: errorSchemas.notFound,
       },
     },

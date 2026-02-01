@@ -1,46 +1,98 @@
-import { useState } from "react";
-import { useItems, useDeleteItem } from "@/hooks/use-items";
+import { useState, useRef } from "react";
+import { useItems, useDeleteItem, useDuplicateItem, useBulkCreateItems } from "@/hooks/use-items";
 import { Link } from "wouter";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
-import { Search, Edit, MapPin, AlertCircle, Plus } from "lucide-react";
+import { Search, Edit, MapPin, AlertCircle, Plus, Copy, Upload, Loader2 } from "lucide-react";
 import { DeleteConfirmDialog } from "@/components/DeleteConfirmDialog";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import * as XLSX from "xlsx";
 
 export default function Home() {
   const [search, setSearch] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { data: items, isLoading, error } = useItems(search);
   const deleteItem = useDeleteItem();
+  const duplicateItem = useDuplicateItem();
+  const bulkCreate = useBulkCreateItems();
 
   const handleDelete = async (id: number) => {
     try {
       await deleteItem.mutateAsync(id);
-    } catch (error) {
-      // Error handled in hook toast
-    }
+    } catch (error) {}
+  };
+
+  const handleDuplicate = async (id: number) => {
+    try {
+      await duplicateItem.mutateAsync(id);
+    } catch (error) {}
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const bstr = evt.target?.result;
+      const wb = XLSX.read(bstr, { type: "binary" });
+      const wsname = wb.SheetNames[0];
+      const ws = wb.Sheets[wsname];
+      const data = XLSX.utils.sheet_to_json(ws);
+
+      const itemsToImport = data.map((row: any) => ({
+        code: String(row["Código"] || row["code"] || ""),
+        name: String(row["Nome"] || row["name"] || ""),
+        description: String(row["Descrição"] || row["description"] || ""),
+        locationExternal: String(row["Local Externo"] || row["locationExternal"] || ""),
+        locationSatellite: String(row["Local Satélite"] || row["locationSatellite"] || ""),
+      })).filter(item => item.code && item.name);
+
+      if (itemsToImport.length > 0) {
+        bulkCreate.mutate(itemsToImport);
+      }
+    };
+    reader.readAsBinaryString(file);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   return (
     <div className="space-y-8">
-      {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h1 className="text-3xl md:text-4xl text-primary mb-2">Localizador de Estoque</h1>
           <p className="text-slate-500 text-lg">Gerencie e localize materiais hospitalares</p>
         </div>
         
-        <Link href="/novo">
-          <Button className="h-12 px-6 rounded-xl bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5 transition-all duration-200">
-            <Plus className="mr-2 h-5 w-5" />
-            Adicionar Novo Item
+        <div className="flex flex-wrap gap-3">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileUpload}
+            accept=".xlsx,.xls,.csv"
+            className="hidden"
+          />
+          <Button 
+            variant="outline"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={bulkCreate.isPending}
+            className="h-12 px-6 rounded-xl border-primary text-primary hover:bg-green-50"
+          >
+            {bulkCreate.isPending ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Upload className="mr-2 h-5 w-5" />}
+            Importar Excel
           </Button>
-        </Link>
+          <Link href="/novo">
+            <Button className="h-12 px-6 rounded-xl bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5 transition-all duration-200">
+              <Plus className="mr-2 h-5 w-5" />
+              Adicionar Item
+            </Button>
+          </Link>
+        </div>
       </div>
 
-      {/* Search Bar */}
       <Card className="p-1 rounded-2xl shadow-lg border-none bg-white overflow-hidden">
         <div className="relative">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-primary/50 h-6 w-6" />
@@ -53,7 +105,6 @@ export default function Home() {
         </div>
       </Card>
 
-      {/* Results Section */}
       {isLoading ? (
         <div className="grid gap-4">
           {[1, 2, 3, 4].map((i) => (
@@ -64,21 +115,9 @@ export default function Home() {
         <div className="flex flex-col items-center justify-center p-12 text-center bg-red-50 rounded-2xl border border-red-100">
           <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
           <h3 className="text-xl font-bold text-red-700">Erro ao carregar itens</h3>
-          <p className="text-red-600 mt-2">Por favor, verifique sua conexão e tente novamente.</p>
-        </div>
-      ) : items?.length === 0 ? (
-        <div className="flex flex-col items-center justify-center p-20 text-center bg-white rounded-3xl border border-dashed border-slate-200">
-          <div className="bg-slate-50 p-6 rounded-full mb-6">
-            <Search className="h-10 w-10 text-slate-300" />
-          </div>
-          <h3 className="text-xl font-bold text-slate-700">Nenhum item encontrado</h3>
-          <p className="text-slate-500 mt-2 max-w-sm">
-            Não encontramos itens com o termo buscado. Tente outra palavra-chave ou adicione um novo item.
-          </p>
         </div>
       ) : (
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-          {/* Mobile View: Cards */}
           <div className="md:hidden divide-y divide-slate-100">
             {items?.map((item) => (
               <div key={item.id} className="p-4 space-y-4">
@@ -90,6 +129,15 @@ export default function Home() {
                     <h3 className="font-bold text-slate-900 text-lg">{item.name}</h3>
                   </div>
                   <div className="flex gap-2">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 text-slate-400"
+                      onClick={() => handleDuplicate(item.id)}
+                      disabled={duplicateItem.isPending}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
                     <Link href={`/editar/${item.id}`}>
                       <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400">
                         <Edit className="h-4 w-4" />
@@ -123,7 +171,6 @@ export default function Home() {
             ))}
           </div>
 
-          {/* Desktop View: Table */}
           <Table className="hidden md:table">
             <TableHeader className="bg-slate-50">
               <TableRow className="hover:bg-transparent">
@@ -146,31 +193,31 @@ export default function Home() {
                   <TableCell className="py-4 align-top">
                     <div className="flex flex-col gap-1">
                       <span className="font-semibold text-foreground text-base">{item.name}</span>
-                      {item.description && (
-                        <span className="text-sm text-slate-400 line-clamp-2">{item.description}</span>
-                      )}
-                      <span className="text-xs text-slate-300 mt-1">
-                        Atualizado: {item.lastUpdated ? format(new Date(item.lastUpdated), "dd MMM yyyy", { locale: ptBR }) : '-'}
-                      </span>
+                      {item.description && <span className="text-sm text-slate-400 line-clamp-2">{item.description}</span>}
                     </div>
                   </TableCell>
 
-                  <TableCell className="align-top py-4 bg-blue-50/30">
-                    <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
-                      <MapPin className="w-4 h-4 text-blue-500" />
-                      {item.locationExternal || "N/A"}
-                    </div>
+                  <TableCell className="align-top py-4 bg-blue-50/30 font-medium text-slate-700">
+                    <MapPin className="w-4 h-4 text-blue-500 inline mr-2" />
+                    {item.locationExternal || "N/A"}
                   </TableCell>
 
-                  <TableCell className="align-top py-4 bg-amber-50/30">
-                    <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
-                      <MapPin className="w-4 h-4 text-amber-500" />
-                      {item.locationSatellite || "N/A"}
-                    </div>
+                  <TableCell className="align-top py-4 bg-amber-50/30 font-medium text-slate-700">
+                    <MapPin className="w-4 h-4 text-amber-500 inline mr-2" />
+                    {item.locationSatellite || "N/A"}
                   </TableCell>
 
                   <TableCell className="text-right pr-6 align-top py-4">
                     <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="text-slate-400 hover:text-primary hover:bg-green-50"
+                        onClick={() => handleDuplicate(item.id)}
+                        disabled={duplicateItem.isPending}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
                       <Link href={`/editar/${item.id}`}>
                         <Button variant="ghost" size="icon" className="text-slate-400 hover:text-primary hover:bg-green-50">
                           <Edit className="h-4 w-4" />

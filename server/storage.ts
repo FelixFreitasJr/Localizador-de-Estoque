@@ -51,6 +51,10 @@ export class DatabaseStorage implements IStorage {
   async deleteItem(id: number): Promise<void> {
     await db.delete(items).where(eq(items.id, id));
   }
+
+  async bulkCreateItems(insertItems: InsertItem[]): Promise<Item[]> {
+    return await db.insert(items).values(insertItems).returning();
+  }
 }
 
 export const storage = new DatabaseStorage();

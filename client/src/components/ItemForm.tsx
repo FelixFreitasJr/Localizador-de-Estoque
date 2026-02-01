@@ -1,12 +1,13 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertItemSchema, type InsertItem } from "@shared/schema";
+import { insertItemSchema, type InsertItem, type Item } from "@shared/schema";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Loader2, Save } from "lucide-react";
+import { useItems } from "@/hooks/use-items";
 
 interface ItemFormProps {
   defaultValues?: Partial<InsertItem>;
@@ -16,6 +17,12 @@ interface ItemFormProps {
 }
 
 export function ItemForm({ defaultValues, onSubmit, isLoading, mode }: ItemFormProps) {
+  const { data: items } = useItems();
+  
+  // Extract unique locations for suggestions
+  const externalLocations = Array.from(new Set(items?.map(i => i.locationExternal).filter(Boolean)));
+  const satelliteLocations = Array.from(new Set(items?.map(i => i.locationSatellite).filter(Boolean)));
+
   const form = useForm<InsertItem>({
     resolver: zodResolver(insertItemSchema),
     defaultValues: {
@@ -89,21 +96,24 @@ export function ItemForm({ defaultValues, onSubmit, isLoading, mode }: ItemFormP
 
             <div className="space-y-6">
               <h3 className="text-lg font-semibold text-primary border-b border-primary/10 pb-2 mb-4">
-                Localização
+                Localização (Endereços)
               </h3>
 
               <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
                 <h4 className="font-semibold text-slate-700 mb-4 flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-blue-500"/> Estoque Externo
                 </h4>
+                <datalist id="external-locations">
+                  {externalLocations.map(loc => <option key={loc} value={loc!} />)}
+                </datalist>
                 <FormField
                   control={form.control}
                   name="locationExternal"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-slate-500 text-xs uppercase tracking-wider font-semibold">Localização</FormLabel>
+                      <FormLabel className="text-slate-500 text-xs uppercase tracking-wider font-semibold">Endereço</FormLabel>
                       <FormControl>
-                        <Input placeholder="Ex: Prateleira A1" value={field.value || ''} onChange={field.onChange} className="bg-white" />
+                        <Input list="external-locations" placeholder="Ex: Prateleira A1" value={field.value || ''} onChange={field.onChange} className="bg-white" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -115,14 +125,17 @@ export function ItemForm({ defaultValues, onSubmit, isLoading, mode }: ItemFormP
                 <h4 className="font-semibold text-slate-700 mb-4 flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-amber-500"/> Estoque Satélite
                 </h4>
+                <datalist id="satellite-locations">
+                  {satelliteLocations.map(loc => <option key={loc} value={loc!} />)}
+                </datalist>
                 <FormField
                   control={form.control}
                   name="locationSatellite"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-slate-500 text-xs uppercase tracking-wider font-semibold">Localização</FormLabel>
+                      <FormLabel className="text-slate-500 text-xs uppercase tracking-wider font-semibold">Endereço</FormLabel>
                       <FormControl>
-                        <Input placeholder="Ex: Armário 3" value={field.value || ''} onChange={field.onChange} className="bg-white" />
+                        <Input list="satellite-locations" placeholder="Ex: Armário 3" value={field.value || ''} onChange={field.onChange} className="bg-white" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

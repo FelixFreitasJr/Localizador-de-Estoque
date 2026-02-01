@@ -6,7 +6,6 @@ export function useItems(search?: string) {
   return useQuery({
     queryKey: [api.items.list.path, search],
     queryFn: async () => {
-      // Build URL with search param if exists
       const url = search 
         ? `${api.items.list.path}?search=${encodeURIComponent(search)}` 
         : api.items.list.path;
@@ -59,15 +58,34 @@ export function useCreateItem() {
       toast({
         title: "Item criado com sucesso",
         description: "O novo item foi adicionado ao estoque.",
-        variant: "default",
         className: "bg-primary text-primary-foreground border-none"
       });
     },
-    onError: (error) => {
+  });
+}
+
+export function useBulkCreateItems() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (data: InsertItem[]) => {
+      const res = await fetch(api.items.bulkCreate.path, {
+        method: api.items.bulkCreate.method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+        credentials: "include",
+      });
+      
+      if (!res.ok) throw new Error("Falha ao importar itens");
+      return api.items.bulkCreate.responses[201].parse(await res.json());
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.items.list.path] });
       toast({
-        title: "Erro ao criar item",
-        description: error.message,
-        variant: "destructive",
+        title: "Importação concluída",
+        description: "Os itens foram carregados com sucesso.",
+        className: "bg-primary text-primary-foreground border-none"
       });
     },
   });
@@ -92,7 +110,6 @@ export function useUpdateItem() {
           const error = api.items.update.responses[400].parse(await res.json());
           throw new Error(error.message);
         }
-        if (res.status === 404) throw new Error("Item não encontrado");
         throw new Error("Falha ao atualizar item");
       }
       return api.items.update.responses[200].parse(await res.json());
@@ -101,15 +118,8 @@ export function useUpdateItem() {
       queryClient.invalidateQueries({ queryKey: [api.items.list.path] });
       toast({
         title: "Item atualizado",
-        description: "As informações do estoque foram salvas.",
+        description: "As informações foram salvas.",
         className: "bg-primary text-primary-foreground border-none"
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Erro na atualização",
-        description: error.message,
-        variant: "destructive",
       });
     },
   });
@@ -122,26 +132,39 @@ export function useDeleteItem() {
   return useMutation({
     mutationFn: async (id: number) => {
       const url = buildUrl(api.items.delete.path, { id });
-      const res = await fetch(url, { 
-        method: api.items.delete.method, 
-        credentials: "include" 
-      });
-      
-      if (res.status === 404) throw new Error("Item não encontrado");
+      const res = await fetch(url, { method: api.items.delete.method, credentials: "include" });
       if (!res.ok) throw new Error("Falha ao deletar item");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [api.items.list.path] });
       toast({
         title: "Item removido",
-        description: "O item foi removido permanentemente do sistema.",
+        description: "O item foi removido do sistema.",
       });
     },
-    onError: (error) => {
+  });
+}
+
+export function useDuplicateItem() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const url = buildUrl(api.items.duplicate.path, { id });
+      const res = await fetch(url, {
+        method: api.items.duplicate.method,
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Falha ao duplicar item");
+      return api.items.duplicate.responses[201].parse(await res.json());
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [api.items.list.path] });
       toast({
-        title: "Erro ao deletar",
-        description: error.message,
-        variant: "destructive",
+        title: "Item duplicado",
+        description: "Uma cópia do item foi criada.",
+        className: "bg-primary text-primary-foreground border-none"
       });
     },
   });
