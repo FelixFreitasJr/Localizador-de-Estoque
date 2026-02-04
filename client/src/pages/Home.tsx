@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
-import { Search, Edit, MapPin, AlertCircle, Plus, Copy, Upload, Loader2 } from "lucide-react";
+import { Building2, Search, Edit, MapPin, AlertCircle, Plus, Copy, Upload, Loader2 } from "lucide-react";
 import { DeleteConfirmDialog } from "@/components/DeleteConfirmDialog";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -60,11 +60,16 @@ export default function Home() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div>
-          <h1 className="text-3xl md:text-4xl text-primary mb-2">Localizador de Estoque</h1>
-          <p className="text-slate-500 text-lg">Gerencie e localize materiais hospitalares</p>
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-primary rounded-2xl shadow-lg shadow-primary/20 shrink-0">
+            <Building2 className="w-8 h-8 text-white" />
+          </div>
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-1">Localizador de Estoque</h1>
+            <p className="text-slate-500 text-lg">INI - Fiocruz</p>
+          </div>
         </div>
         
         <div className="flex flex-wrap gap-3">
