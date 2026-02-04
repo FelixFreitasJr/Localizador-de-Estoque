@@ -60,55 +60,60 @@ export default function Home() {
   };
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <div className="flex items-center gap-4">
-          <div className="p-3 bg-primary rounded-2xl shadow-lg shadow-primary/20 shrink-0">
-            <Building2 className="w-8 h-8 text-white" />
+    <div className="max-w-7xl mx-auto">
+      {/* Sticky Header and Search Section */}
+      <div className="sticky top-0 z-40 bg-slate-50/95 backdrop-blur-md -mx-4 px-4 py-4 md:-mx-12 md:px-12 mb-8 border-b border-slate-200/50">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6">
+          <div className="flex items-center gap-4">
+            <div className="p-3 bg-primary rounded-2xl shadow-lg shadow-primary/20 shrink-0">
+              <Building2 className="w-8 h-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold text-slate-900 mb-0.5 tracking-tight">Localizador de Estoque</h1>
+              <p className="text-slate-500 text-sm md:text-base font-medium">INI - Fiocruz</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-1">Localizador de Estoque</h1>
-            <p className="text-slate-500 text-lg">INI - Fiocruz</p>
-          </div>
-        </div>
-        
-        <div className="flex flex-wrap gap-3">
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileUpload}
-            accept=".xlsx,.xls,.csv"
-            className="hidden"
-          />
-          <Button 
-            variant="outline"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={bulkCreate.isPending}
-            className="h-12 px-6 rounded-xl border-primary text-primary hover:bg-green-50"
-          >
-            {bulkCreate.isPending ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Upload className="mr-2 h-5 w-5" />}
-            Importar Excel
-          </Button>
-          <Link href="/novo">
-            <Button className="h-12 px-6 rounded-xl bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-0.5 transition-all duration-200">
-              <Plus className="mr-2 h-5 w-5" />
-              Adicionar Item
+          
+          <div className="flex flex-wrap gap-2 md:gap-3">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+              accept=".xlsx,.xls,.csv"
+              className="hidden"
+            />
+            <Button 
+              variant="outline"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={bulkCreate.isPending}
+              className="h-10 px-4 rounded-xl border-primary/20 text-primary hover:bg-green-50 md:h-11 md:px-5"
+            >
+              {bulkCreate.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+              <span className="text-sm font-semibold">Importar Excel</span>
             </Button>
-          </Link>
+            <Link href="/novo">
+              <Button size="sm" className="h-10 px-4 rounded-xl bg-primary hover:bg-primary/90 text-white shadow-md shadow-primary/10 transition-all active:scale-95 md:h-11 md:px-5">
+                <Plus className="mr-2 h-4 w-4" />
+                <span className="text-sm font-semibold">Novo Item</span>
+              </Button>
+            </Link>
+          </div>
         </div>
-      </div>
 
-      <Card className="p-1 rounded-2xl shadow-lg border-none bg-white overflow-hidden">
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-primary/50 h-6 w-6" />
-          <Input
-            className="w-full h-14 pl-14 pr-4 text-lg border-none focus-visible:ring-0 bg-transparent placeholder:text-slate-300"
-            placeholder="Buscar por código, nome ou descrição..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-      </Card>
+        {/* Search Bar */}
+        <Card className="p-0.5 rounded-2xl shadow-sm border border-slate-200 bg-white overflow-hidden ring-4 ring-slate-100/50">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-primary/40 h-5 w-5" />
+            <Input
+              className="w-full h-12 pl-12 pr-4 text-base border-none focus-visible:ring-0 bg-transparent placeholder:text-slate-400 font-medium"
+              placeholder="Buscar por código, nome ou descrição..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+        </Card>
+      </div>
 
       {isLoading ? (
         <div className="grid gap-4">

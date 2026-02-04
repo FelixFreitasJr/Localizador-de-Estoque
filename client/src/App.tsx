@@ -23,10 +23,21 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <div className="min-h-screen bg-slate-50">
-          <main className="min-h-screen p-4 md:p-12">
+        <div className="min-h-screen bg-slate-50 flex flex-col">
+          <main className="flex-1 p-4 md:p-12 pb-20">
             <Router />
           </main>
+          <footer className="py-6 border-t border-slate-200 bg-white text-center text-slate-500 text-sm">
+            Desenvolvido por{" "}
+            <a 
+              href="https://github.com/FelixFreitasJr" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-primary font-semibold hover:underline"
+            >
+              Felix Freitas Jr
+            </a>
+          </footer>
         </div>
         <Toaster />
       </TooltipProvider>
