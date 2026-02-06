@@ -53,7 +53,12 @@ export function ItemForm({ defaultValues, onSubmit, isLoading, mode }: ItemFormP
                   <FormItem>
                     <FormLabel className="text-foreground font-medium">Código do Item</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ex: SER10" {...field} className="h-12 bg-slate-50 border-slate-200 focus:border-primary focus:ring-primary/20" />
+                      <Input 
+                        placeholder="Ex: SER10" 
+                        {...field} 
+                        className="h-12 bg-slate-50 border-slate-200 focus:border-primary focus:ring-primary/20 uppercase" 
+                        onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -67,7 +72,12 @@ export function ItemForm({ defaultValues, onSubmit, isLoading, mode }: ItemFormP
                   <FormItem>
                     <FormLabel className="text-foreground font-medium">Nome do Item</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ex: Seringa 5ml" {...field} className="h-12 bg-slate-50 border-slate-200 focus:border-primary focus:ring-primary/20" />
+                      <Input 
+                        placeholder="Ex: Seringa 5ml" 
+                        {...field} 
+                        className="h-12 bg-slate-50 border-slate-200 focus:border-primary focus:ring-primary/20 uppercase" 
+                        onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -83,9 +93,10 @@ export function ItemForm({ defaultValues, onSubmit, isLoading, mode }: ItemFormP
                     <FormControl>
                       <Textarea 
                         placeholder="Detalhes adicionais..." 
-                        className="min-h-[120px] bg-slate-50 border-slate-200 focus:border-primary focus:ring-primary/20 resize-none"
+                        className="min-h-[120px] bg-slate-50 border-slate-200 focus:border-primary focus:ring-primary/20 resize-none uppercase"
                         {...field} 
                         value={field.value || ''}
+                        onChange={(e) => field.onChange(e.target.value.toUpperCase())}
                       />
                     </FormControl>
                     <FormMessage />
@@ -113,7 +124,13 @@ export function ItemForm({ defaultValues, onSubmit, isLoading, mode }: ItemFormP
                     <FormItem>
                       <FormLabel className="text-slate-500 text-xs uppercase tracking-wider font-semibold">Endereço</FormLabel>
                       <FormControl>
-                        <Input list="external-locations" placeholder="Ex: Prateleira A1" value={field.value || ''} onChange={field.onChange} className="bg-white" />
+                        <Input 
+                          list="external-locations" 
+                          placeholder="Ex: Prateleira A1" 
+                          value={field.value || ''} 
+                          className="bg-white uppercase"
+                          onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -135,7 +152,13 @@ export function ItemForm({ defaultValues, onSubmit, isLoading, mode }: ItemFormP
                     <FormItem>
                       <FormLabel className="text-slate-500 text-xs uppercase tracking-wider font-semibold">Endereço</FormLabel>
                       <FormControl>
-                        <Input list="satellite-locations" placeholder="Ex: Armário 3" value={field.value || ''} onChange={field.onChange} className="bg-white" />
+                        <Input 
+                          list="satellite-locations" 
+                          placeholder="Ex: Armário 3" 
+                          value={field.value || ''} 
+                          className="bg-white uppercase"
+                          onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

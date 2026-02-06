@@ -1,15 +1,17 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useItems, useDeleteItem, useDuplicateItem, useBulkCreateItems } from "@/hooks/use-items";
 import { Link } from "wouter";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
-import { Building2, Search, Edit, MapPin, AlertCircle, Plus, Copy, Upload, Loader2 } from "lucide-react";
+import { Building2, Search, Edit, MapPin, AlertCircle, Plus, Copy, Upload, Loader2, FileText } from "lucide-react";
 import { DeleteConfirmDialog } from "@/components/DeleteConfirmDialog";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import * as XLSX from "xlsx";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 export default function Home() {
   const [search, setSearch] = useState("");
@@ -18,6 +20,37 @@ export default function Home() {
   const deleteItem = useDeleteItem();
   const duplicateItem = useDuplicateItem();
   const bulkCreate = useBulkCreateItems();
+
+  useEffect(() => {
+    document.title = "Localizado";
+  }, []);
+
+  const generatePDF = () => {
+    if (!items) return;
+    const doc = new jsPDF();
+    const now = format(new Date(), "dd/MM/yyyy HH:mm:ss", { locale: ptBR });
+
+    doc.setFontSize(18);
+    doc.text("Relatório de Estoque - INI Fiocruz", 14, 20);
+    doc.setFontSize(10);
+    doc.text(`Gerado em: ${now}`, 14, 28);
+
+    autoTable(doc, {
+      startY: 35,
+      head: [["Código", "Nome", "Descrição", "Local Externo", "Local Satélite"]],
+      body: items.map(item => [
+        item.code,
+        item.name,
+        item.description || "",
+        item.locationExternal || "",
+        item.locationSatellite || ""
+      ]),
+      headStyles: { fillColor: [0, 103, 71] },
+      styles: { fontSize: 8 }
+    });
+
+    doc.save(`relatorio-estoque-${format(new Date(), "dd-MM-yyyy-HHmm")}.pdf`);
+  };
 
   const handleDelete = async (id: number) => {
     try {
@@ -85,6 +118,15 @@ export default function Home() {
             <Button 
               variant="outline"
               size="sm"
+              onClick={generatePDF}
+              className="h-10 px-4 rounded-xl border-slate-200 text-slate-600 hover:bg-slate-50 md:h-11 md:px-5"
+            >
+              <FileText className="mr-2 h-4 w-4" />
+              <span className="text-sm font-semibold">Relatório PDF</span>
+            </Button>
+            <Button 
+              variant="outline"
+              size="sm"
               onClick={() => fileInputRef.current?.click()}
               disabled={bulkCreate.isPending}
               className="h-10 px-4 rounded-xl border-primary/20 text-primary hover:bg-green-50 md:h-11 md:px-5"
@@ -106,10 +148,14 @@ export default function Home() {
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-primary/40 h-5 w-5" />
             <Input
-              className="w-full h-12 pl-12 pr-4 text-base border-none focus-visible:ring-0 bg-transparent placeholder:text-slate-400 font-medium"
+              className="w-full h-12 pl-12 pr-4 text-base border-none focus-visible:ring-0 bg-transparent placeholder:text-slate-400 font-medium uppercase"
               placeholder="Buscar por código, nome ou descrição..."
+              autoCapitalize="characters"
+              autoComplete="on"
+              autoCorrect="on"
+              spellCheck="true"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => setSearch(e.target.value.toUpperCase())}
             />
           </div>
         </Card>
