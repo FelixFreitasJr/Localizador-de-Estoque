@@ -55,7 +55,7 @@ export default function Home() {
   const exportToExcel = () => {
     if (!items) return;
     
-    const data = items.map(item => ({
+    const itemsToExport = items.map(item => ({
       "Código": item.code,
       "Nome": item.name,
       "Descrição": item.description || "",
@@ -63,7 +63,7 @@ export default function Home() {
       "Local Satélite": item.locationSatellite || ""
     }));
 
-    const ws = XLSX.utils.json_to_sheet(data);
+    const ws = XLSX.utils.json_to_sheet(itemsToExport);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Estoque");
     
