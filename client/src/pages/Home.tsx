@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
-import { Building2, Search, Edit, MapPin, AlertCircle, Plus, Copy, Upload, Loader2, FileText } from "lucide-react";
+import { Building2, Search, Edit, MapPin, AlertCircle, Plus, Copy, Upload, Loader2, FileText, X, FileSpreadsheet } from "lucide-react";
 import { DeleteConfirmDialog } from "@/components/DeleteConfirmDialog";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -50,6 +50,24 @@ export default function Home() {
     });
 
     doc.save(`relatorio-estoque-${format(new Date(), "dd-MM-yyyy-HHmm")}.pdf`);
+  };
+
+  const exportToExcel = () => {
+    if (!items) return;
+    
+    const data = items.map(item => ({
+      "Código": item.code,
+      "Nome": item.name,
+      "Descrição": item.description || "",
+      "Local Externo": item.locationExternal || "",
+      "Local Satélite": item.locationSatellite || ""
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Estoque");
+    
+    XLSX.writeFile(wb, `estoque-${format(new Date(), "dd-MM-yyyy-HHmm")}.xlsx`);
   };
 
   const handleDelete = async (id: number) => {
@@ -127,6 +145,15 @@ export default function Home() {
             <Button 
               variant="outline"
               size="sm"
+              onClick={exportToExcel}
+              className="h-10 px-4 rounded-xl border-slate-200 text-slate-600 hover:bg-slate-50 md:h-11 md:px-5"
+            >
+              <FileSpreadsheet className="mr-2 h-4 w-4" />
+              <span className="text-sm font-semibold">Exportar Excel</span>
+            </Button>
+            <Button 
+              variant="outline"
+              size="sm"
               onClick={() => fileInputRef.current?.click()}
               disabled={bulkCreate.isPending}
               className="h-10 px-4 rounded-xl border-primary/20 text-primary hover:bg-green-50 md:h-11 md:px-5"
@@ -148,7 +175,7 @@ export default function Home() {
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-primary/40 h-5 w-5" />
             <Input
-              className="w-full h-12 pl-12 pr-4 text-base border-none focus-visible:ring-0 bg-transparent placeholder:text-slate-400 font-medium uppercase"
+              className="w-full h-12 pl-12 pr-12 text-base border-none focus-visible:ring-0 bg-transparent placeholder:text-slate-400 font-medium uppercase"
               placeholder="Buscar por código, nome ou descrição..."
               autoCapitalize="characters"
               autoComplete="on"
@@ -157,6 +184,15 @@ export default function Home() {
               value={search}
               onChange={(e) => setSearch(e.target.value.toUpperCase())}
             />
+            {search && (
+              <button
+                onClick={() => setSearch("")}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                title="Limpar pesquisa"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            )}
           </div>
         </Card>
       </div>
